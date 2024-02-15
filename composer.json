@@ -1,0 +1,51 @@
+{
+    "name": "youcanshop/foggle",
+    "description": "A feature flagging package for Laravel.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Aymane Dara Hlamnach",
+            "email": "aymane.hlamnach@youcan.shop"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "YouCanShop\\Foggle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests"
+        }
+    },
+    "require": {
+        "php": ">=7.4"
+    },
+    "require-dev": {
+        "laravel/framework": ">=5.8",
+        "pestphp/pest": "^1",
+        "phpstan/phpstan": "^1.10",
+        "rector/rector": "^0.18.3"
+    },
+    "scripts": {
+        "refactor": "rector",
+        "test:refactor": "rector --dry-run",
+        "test:types": "phpstan analyse --ansi",
+        "test:unit": "pest --colors=always",
+        "test": [
+            "@test:refactor",
+            "@test:types",
+            "@test:unit"
+        ]
+    },
+    "config": {
+        "sort-packages": true,
+        "preferred-install": "dist",
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
