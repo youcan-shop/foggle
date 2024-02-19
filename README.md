@@ -47,8 +47,6 @@ The minimum requirements for a feature class are:
 
 These cannot be enforced through an interface, and will be validated in the registration phase of the applicaton.
 
-Note that 
-
 #### Resolving features
 
 Features are lazily resolved by default. To check whether a feature is active, you can use the Foggle feature manager like so:
