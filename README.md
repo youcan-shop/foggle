@@ -1,6 +1,6 @@
 # Foggle
 
-A feature flagging package for Laravel.
+A feature flagging package for Laravel, heavily inspired by Pennant.
 
 ## Usage
 
