@@ -1,0 +1,5 @@
+providers:
+  - YouCanShop\Foggle\FoggleServiceProvider
+
+workbench:
+  install: true

@@ -2,10 +2,10 @@
 
 namespace YouCanShop\Foggle\Drivers;
 
+use Closure;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Str;
-use stdClass;
 use Symfony\Component\Finder\Finder;
 use YouCanShop\Foggle\Contracts\Driver;
 use YouCanShop\Foggle\Lazily;
@@ -18,21 +18,19 @@ class Decorator implements Driver
 
     private Container $container;
 
-    /** @var callable */
-    private $resolver;
-
     public function __construct(
         string $name,
         Driver $driver,
-        callable $resolver,
         Container $container
     ) {
         $this->name = $name;
         $this->driver = $driver;
-        $this->resolver = $resolver;
         $this->container = $container;
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function discover(string $namespace = 'App\\Features', ?string $path = null): void
     {
         $namespace = Str::finish($namespace, '\\');
@@ -47,24 +45,55 @@ class Decorator implements Driver
     }
 
     /**
-     * @param class-string $name
+     * @param class-string|string $name
+     * @param callable|null $resolver
      *
      * @return void
      * @throws BindingResolutionException
      */
-    public function define(string $name)
+    public function define(string $name, callable $resolver = null): void
     {
-        /** @var stdClass $instance */
-        $instance = $this->container->make($name);
-        $feature = $instance->name ?? class_basename($name);
+        if ($resolver === null) {
+            [$name, $resolver] = [$this->container->make($name)->name ?? $name, new Lazily($name)];
+        }
 
-        $this->driver->define($feature, function ($context) use ($feature, $instance) {
-            $resolver = fn () => $instance->resolve($context);
+        $this->driver->define($name, function ($context) use ($name, $resolver) {
+            if ($resolver instanceof Lazily) {
+                $resolver = with(
+                    $this->container[$resolver->feature],
+                    fn($i) => method_exists($i, 'resolve')
+                        ? $i->resolve($context)
+                        : $i($context)
+                );
+            }
+
+            if (!$resolver instanceof Closure) {
+                return $this->resolve($name, fn() => $resolver, $context);
+            }
+
+            return $this->resolve($name, $resolver, $context);
         });
     }
 
-    public function get(string $feature, $context)
+    /**
+     * @param string $name
+     * @param callable $resolver
+     * @param mixed $context
+     *
+     * @return mixed
+     */
+    protected function resolve(string $name, callable $resolver, $context)
     {
-        // TODO: Implement get() method.
+        return $resolver($context);
+    }
+
+    public function get(string $name, $context)
+    {
+        return $this->driver->get($name, $context);
+    }
+
+    public function defined(): array
+    {
+        return $this->driver->defined();
     }
 }

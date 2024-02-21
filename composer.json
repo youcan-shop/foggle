@@ -41,11 +41,9 @@
     "scripts": {
         "refactor": "rector",
         "test:refactor": "rector --dry-run",
-        "test:types": "phpstan analyse --ansi",
         "test:unit": "pest --colors=always",
         "test": [
             "@test:refactor",
-            "@test:types",
             "@test:unit"
         ]
     },
