@@ -3,13 +3,16 @@
 namespace YouCanShop\Foggle\Drivers;
 
 use Closure;
-use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Str;
 use Symfony\Component\Finder\Finder;
 use YouCanShop\Foggle\Contracts\Driver;
+use YouCanShop\Foggle\FeatureInteraction;
 use YouCanShop\Foggle\Lazily;
 
+/**
+ * @mixin FeatureInteraction
+ */
 class Decorator implements Driver
 {
     private string $name;
@@ -28,9 +31,6 @@ class Decorator implements Driver
         $this->container = $container;
     }
 
-    /**
-     * @throws BindingResolutionException
-     */
     public function discover(string $namespace = 'App\\Features', ?string $path = null): void
     {
         $namespace = Str::finish($namespace, '\\');
@@ -49,7 +49,6 @@ class Decorator implements Driver
      * @param callable|null $resolver
      *
      * @return void
-     * @throws BindingResolutionException
      */
     public function define(string $name, callable $resolver = null): void
     {
@@ -95,5 +94,16 @@ class Decorator implements Driver
     public function defined(): array
     {
         return $this->driver->defined();
+    }
+
+    /**
+     * @param string $name
+     * @param array $arguments
+     *
+     * @return mixed
+     */
+    public function __call($name, $arguments)
+    {
+        return (new FeatureInteraction($this))->$name(...$arguments);
     }
 }
