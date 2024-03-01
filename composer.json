@@ -10,6 +10,9 @@
         }
     ],
     "autoload": {
+        "files": [
+            "./helpers.php"
+        ],
         "psr-4": {
             "YouCanShop\\Foggle\\": "src/"
         }

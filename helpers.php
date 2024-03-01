@@ -1,14 +1,12 @@
 <?php
 
-use Illuminate\Contracts\Container\BindingResolutionException;
 use YouCanShop\Foggle\Foggle;
 
 if (!function_exists('foggle')) {
     /**
      * @param string|null $feature
      *
-     * @return mixed
-     * @throws BindingResolutionException
+     * @return Foggle|mixed
      */
     function foggle(string $feature = null)
     {

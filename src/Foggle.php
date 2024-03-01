@@ -63,8 +63,7 @@ final class Foggle
 
         return new Decorator($name, $driver, $this->container);
     }
-
-
+    
     protected function getDriverConfig(string $name): ?array
     {
         return $this->container['config']["foggle.stores.$name"];
