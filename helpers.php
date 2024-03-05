@@ -20,3 +20,17 @@ if (!function_exists('foggle')) {
         }
     }
 }
+
+if (!function_exists('splode')) {
+    /**
+     * @return false|string[]
+     */
+    function splode(?string $string, string $separator = ',', int $limit = PHP_INT_MAX)
+    {
+        if (empty($string)) {
+            return [];
+        }
+
+        return explode($separator, $string, $limit);
+    }
+}

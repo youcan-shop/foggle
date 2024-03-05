@@ -1,5 +1,7 @@
 <?php
 
+use YouCanShop\Foggle\FogGen;
+
 use function Orchestra\Testbench\workbench_path;
 
 it('discovers features', function () {
@@ -32,4 +34,15 @@ it('resolves with a context', function () {
 
     expect(foggle()->for(true)->active('resolves-to-context'))->toBeTrue()
         ->and(foggle()->for(false)->active('resolves-to-context'))->toBeFalse();
+});
+
+it('splodes properly', function () {
+    expect(config('features.billing.sellers'))->toEqual([1, 2, 3]);
+});
+
+it('registers a generated feature', function () {
+    foggle()->define('billing', FogGen::inconfig('features.billing.sellers'));
+
+    expect(foggle()->for('1')->active('billing'))->toBeTrue()
+        ->and(foggle()->for('0')->active('billing'))->toBeFalse();
 });
