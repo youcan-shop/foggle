@@ -1,5 +1,6 @@
 <?php
 
+use Workbench\App\Models\User;
 use YouCanShop\Foggle\FogGen;
 
 use function Orchestra\Testbench\workbench_path;
@@ -45,4 +46,11 @@ it('registers a generated feature', function () {
 
     expect(foggle()->for('1')->active('billing'))->toBeTrue()
         ->and(foggle()->for('0')->active('billing'))->toBeFalse();
+});
+
+it('resolves a foggable using its id', function () {
+    foggle()->define('billing', FogGen::inconfig('features.billing.sellers'));
+
+    expect(foggle()->for(new User('1'))->active('billing'))->toBeTrue()
+        ->and(foggle()->for(new User('0'))->active('billing'))->toBeFalse();
 });

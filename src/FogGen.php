@@ -2,6 +2,9 @@
 
 namespace YouCanShop\Foggle;
 
+use InvalidArgumentException;
+use YouCanShop\Foggle\Contracts\Foggable;
+
 class FogGen
 {
     /**
@@ -16,7 +19,13 @@ class FogGen
             if (in_array('*', $config)) {
                 return true;
             }
-            
+
+            $context = $context instanceof Foggable ? $context->foggleId() : $context;
+
+            if (!is_string($context)) {
+                throw new InvalidArgumentException('Context must be an instance of Foggable or a string');
+            }
+
             return in_array($context, config($path, []));
         };
     }
