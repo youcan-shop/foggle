@@ -7,7 +7,6 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use ReflectionFunction;
-use ReflectionType;
 use Symfony\Component\Finder\Finder;
 use YouCanShop\Foggle\Contracts\Driver;
 use YouCanShop\Foggle\FeatureInteraction;
@@ -112,21 +111,6 @@ class Decorator implements Driver
     protected function resolve(string $name, callable $resolver, $context)
     {
         return $resolver($context);
-    }
-
-    protected function getContextType($resolver): ?ReflectionType
-    {
-        if ($resolver instanceof Lazily) {
-            return null;
-        }
-
-        $function = new ReflectionFunction(Closure::fromCallable($resolver));
-
-        if ($function->getNumberOfParameters() !== 1 || !$function->getParameters()[0]->hasType()) {
-            return null;
-        }
-
-        return $function->getParameters()[0]->getType();
     }
 
     protected function canHandleNullContext(callable $resolver): bool
