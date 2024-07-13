@@ -116,6 +116,11 @@ final class Foggle
         return $this->container['config']->get('foggle.default') ?? 'array';
     }
 
+    public function store($store = null): Decorator
+    {
+        return $this->driver($store);
+    }
+
     public function serialize($context): string
     {
         if ($context === null) {

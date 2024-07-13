@@ -28,4 +28,11 @@ interface Driver
      *
      */
     public function set(string $name, $context, $value): void;
+
+    /**
+     * @param array|null $features
+     *
+     * @return void
+     */
+    public function purge(?array $features): void;
 }
