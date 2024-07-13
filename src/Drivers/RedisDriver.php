@@ -8,8 +8,9 @@ use Illuminate\Redis\Connections\Connection;
 use Illuminate\Redis\RedisManager;
 use stdClass;
 use YouCanShop\Foggle\Contracts\Driver;
+use YouCanShop\Foggle\Contracts\ListsStored;
 
-class RedisDriver implements Driver
+class RedisDriver implements Driver, ListsStored
 {
     protected stdClass $unknown;
 
@@ -98,5 +99,36 @@ class RedisDriver implements Driver
     public function define(string $name, callable $resolver): void
     {
         $this->resolvers[$name] = $resolver;
+    }
+
+    public function stored(): array
+    {
+        return iterator_to_array(
+            (function () {
+                $cursor = 0;
+                do {
+                    [$cursor, $keys] = $this->connection()
+                        ->command('SCAN', [$cursor, 'match', "foggle:*"]);
+
+                    foreach ($keys as $key) {
+                        yield mb_substr($key, mb_strlen($this->prefix) + 1);
+                    }
+                } while ($cursor);
+            })()
+        );
+    }
+
+    public function purge(?array $features): void
+    {
+        if ($features === null) {
+            foreach ($this->stored() as $f) {
+                $this->connection()->command('DEL', ["$this->prefix:$f"]);
+            }
+
+            return;
+        }
+        foreach ($features as $f) {
+            $this->connection()->command('DEL', ["$this->prefix:$f"]);
+        }
     }
 }

@@ -28,6 +28,8 @@ class FoggleServiceProvider extends ServiceProvider
                 [__DIR__ . '/../config/foggle.php' => config_path('foggle.php')],
                 'foggle-config'
             );
+
+            $this->commands([\YouCanShop\Foggle\Commands\PurgeCommand::class]);
         }
 
         $dispatcher = make(Dispatcher::class);

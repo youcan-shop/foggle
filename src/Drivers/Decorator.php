@@ -7,15 +7,17 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use ReflectionFunction;
+use RuntimeException;
 use Symfony\Component\Finder\Finder;
 use YouCanShop\Foggle\Contracts\Driver;
+use YouCanShop\Foggle\Contracts\ListsStored;
 use YouCanShop\Foggle\FeatureInteraction;
 use YouCanShop\Foggle\Lazily;
 
 /**
  * @mixin FeatureInteraction
  */
-class Decorator implements Driver
+class Decorator implements Driver, ListsStored
 {
     /** @var Collection<int, array{ name: string, context: mixed, value: mixed}> */
     protected $cache;
@@ -193,5 +195,39 @@ class Decorator implements Driver
     public function __call($name, $arguments)
     {
         return (new FeatureInteraction($this))->$name(...$arguments);
+    }
+
+    public function stored(): array
+    {
+        if (!$this->driver instanceof ListsStored) {
+            throw new RuntimeException("The [$this->name] driver does not support listing stored features.");
+        }
+
+        return $this->driver->stored();
+    }
+
+    public function purge(?array $features): void
+    {
+        if ($features === null) {
+            $this->driver->purge(null);
+            $this->cache = collect();
+
+            return;
+        }
+
+        Collection::wrap($features)
+            ->map(Closure::fromCallable([$this, 'resolve']))
+            ->pipe(
+                function ($features) {
+                    $this->driver->purge($features->all());
+
+                    $this->cache->forget(
+                        $this->cache
+                            ->whereInStrict('feature', $features)
+                            ->keys()
+                            ->all()
+                    );
+                }
+            );
     }
 }

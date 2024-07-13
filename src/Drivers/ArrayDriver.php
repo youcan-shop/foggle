@@ -5,8 +5,9 @@ namespace YouCanShop\Foggle\Drivers;
 use Illuminate\Contracts\Events\Dispatcher;
 use stdClass;
 use YouCanShop\Foggle\Contracts\Driver;
+use YouCanShop\Foggle\Contracts\ListsStored;
 
-class ArrayDriver implements Driver
+class ArrayDriver implements Driver, ListsStored
 {
     /** @var Dispatcher */
     protected Dispatcher $dispatcher;
@@ -96,5 +97,23 @@ class ArrayDriver implements Driver
     public function cFlush(): void
     {
         $this->resolved = [];
+    }
+
+    public function stored(): array
+    {
+        return array_keys($this->resolved);
+    }
+
+    public function purge(?array $features): void
+    {
+        if ($features === null) {
+            $this->resolved = [];
+
+            return;
+        }
+
+        foreach ($features as $feature) {
+            unset($this->resolved[$feature]);
+        }
     }
 }
