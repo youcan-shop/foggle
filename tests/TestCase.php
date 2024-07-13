@@ -22,9 +22,10 @@ abstract class TestCase extends OrchestraTestCase
     {
         tap($app['config'], function (Repository $config) {
             $config->set('features', [
-                'billing' => [
-                    'sellers' => splode('1,2,3'),
+                'billing'            => [
+                    'sellers' => '1,2,3',
                 ],
+                'allow-number-seven' => '7',
             ]);
 
             $config->set('foggle.context_resolvers', [

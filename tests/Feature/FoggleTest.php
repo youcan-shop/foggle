@@ -43,7 +43,7 @@ it('resolves with a context', function () {
 });
 
 it('splodes properly', function () {
-    expect(config('features.billing.sellers'))->toEqual([1, 2, 3]);
+    expect(splode(config('features.billing.sellers')))->toEqual([1, 2, 3]);
 });
 
 it('registers a generated feature', function () {
@@ -60,8 +60,33 @@ it('resolves a foggable using its id', function () {
         ->and(foggle()->for(new User('0'))->active('billing'))->toBeFalse();
 });
 
-it('resolves context', function () {
-    foggle()->define('allow-number-seven', fn(Cat $cat) => $cat->foggleId() === '7');
+it('resolves context for classes', function () {
+    foggle()->discover(
+        'Workbench\\App\\Features',
+        workbench_path('app/Features')
+    );
+
+    expect(foggle()->active('allow-number-seven'))->toBeTrue()
+        ->and(foggle()->for(new Cat('8'))->active('allow-number-seven'))->toBeFalse();
+});
+
+it('resolves context for callables', function () {
+    foggle()->define(
+        'allow-number-seven',
+        fn(Cat $cat) => $cat->foggleId() === '7',
+        Cat::class
+    );
+
+    expect(foggle()->active('allow-number-seven'))->toBeTrue()
+        ->and(foggle()->for(new Cat('8'))->active('allow-number-seven'))->toBeFalse();
+});
+
+it('resolves context for generations', function () {
+    foggle()->define(
+        'allow-number-seven',
+        FogGen::inconfig('features.allow-number-seven'),
+        Cat::class,
+    );
 
     expect(foggle()->active('allow-number-seven'))->toBeTrue()
         ->and(foggle()->for(new Cat('8'))->active('allow-number-seven'))->toBeFalse();

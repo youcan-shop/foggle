@@ -58,18 +58,31 @@ class Decorator implements Driver
     }
 
     /**
-     * @param class-string|string $name
+     * @param class-string|string $name The feature's name
+     * @param class-string|null $type The context resolver's type
      */
-    public function define(string $name, ?callable $resolver = null): void
+    public function define(string $name, ?callable $resolver = null, ?string $type = null): void
     {
         if ($resolver === null) {
-            [$name, $resolver] = [$this->container->make($name)->name ?? $name, new Lazily($name)];
+            $feature = $this->container->make($name);
+            [$name, $resolver, $type] = [
+                $feature->name ?? $name,
+                new Lazily($name),
+                $feature->contextType ?? null,
+            ];
         }
 
-        $this->driver->define($name, function ($context) use ($name, $resolver) {
+        $this->driver->define($name, function ($context) use ($name, $resolver, $type) {
+            if ($context === null && $type !== null) {
+                $context = foggle()->resolveContext($type);
+            }
+
             if ($resolver instanceof Lazily) {
                 $resolver = with(
-                    $this->container[$resolver->feature], fn($i) => method_exists($i, 'resolve') ? $i->resolve($context) : $i($context)
+                    $this->container[$resolver->feature],
+                    fn($i) => method_exists($i, 'resolve')
+                        ? $i->resolve($context)
+                        : $i($context)
                 );
             }
 
@@ -78,13 +91,6 @@ class Decorator implements Driver
             }
 
             if ($context !== null) {
-                return $this->resolve($name, $resolver, $context);
-            }
-
-            if (
-                ($type = $this->getContextType($resolver)) !== null
-                && ($context = foggle()->resolveContext($type)) !== null
-            ) {
                 return $this->resolve($name, $resolver, $context);
             }
 
@@ -108,8 +114,12 @@ class Decorator implements Driver
         return $resolver($context);
     }
 
-    protected function getContextType(callable $resolver): ?ReflectionType
+    protected function getContextType($resolver): ?ReflectionType
     {
+        if ($resolver instanceof Lazily) {
+            return null;
+        }
+
         $function = new ReflectionFunction(Closure::fromCallable($resolver));
 
         if ($function->getNumberOfParameters() !== 1 || !$function->getParameters()[0]->hasType()) {
