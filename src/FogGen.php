@@ -9,13 +9,19 @@ class FogGen
 {
     /**
      * @param string $path The config's dotted path
+     * @param string $separator
      *
      * @return callable
      */
-    public static function inconfig(string $path): callable
+    public static function inconfig(string $path, string $separator = ','): callable
     {
-        return function ($context) use ($path) {
+        return function ($context) use ($path, $separator) {
             $config = config($path, []);
+
+            if (is_string($config)) {
+                $config = splode($config, $separator);
+            }
+
             if (in_array('*', $config)) {
                 return true;
             }

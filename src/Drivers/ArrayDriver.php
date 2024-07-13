@@ -3,6 +3,7 @@
 namespace YouCanShop\Foggle\Drivers;
 
 use Illuminate\Contracts\Events\Dispatcher;
+use stdClass;
 use YouCanShop\Foggle\Contracts\Driver;
 
 class ArrayDriver implements Driver
@@ -13,6 +14,12 @@ class ArrayDriver implements Driver
     /** @var array<string, (callable(mixed $context): mixed)> */
     protected array $resolvers;
 
+    /** @var array<string, array<string, mixed>> */
+    protected array $resolved = [];
+
+    /** @var stdClass */
+    protected stdClass $unknown;
+
     /**
      * @param Dispatcher $dispatcher
      * @param array<string, (callable(mixed $context): mixed)> $resolvers
@@ -21,6 +28,8 @@ class ArrayDriver implements Driver
     {
         $this->dispatcher = $dispatcher;
         $this->resolvers = $resolvers;
+
+        $this->unknown = new stdClass;
     }
 
     /**
@@ -36,7 +45,44 @@ class ArrayDriver implements Driver
      */
     public function get(string $name, $context)
     {
+        $key = foggle()->serialize($context);
+
+        if (isset($this->resolved[$name][$key])) {
+            return $this->resolved[$name][$key];
+        }
+
+        return with(
+            $this->resolveValue($name, $context),
+            function ($value) use ($name, $key) {
+                if ($value === $this->unknown) {
+                    return false;
+                }
+
+                $this->set($name, $key, $value);
+
+                return $value;
+            }
+        );
+    }
+
+    /**
+     * @param mixed $context
+     *
+     * @return mixed
+     */
+    protected function resolveValue(string $name, $context)
+    {
+        if (!array_key_exists($name, $this->resolvers)) {
+            return $this->unknown;
+        }
+
         return $this->resolvers[$name]($context);
+    }
+
+    public function set(string $name, $context, $value): void
+    {
+        $this->resolved[$name] = $this->resolved[$name] ?? [];
+        $this->resolved[$name][foggle()->serialize($context)] = $value;
     }
 
     /**

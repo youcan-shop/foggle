@@ -27,14 +27,18 @@ it('retrieves a feature\'s value by name', function () {
     expect($foggle->get('always-true', null))->toBeTrue();
 });
 
+it('considers undefined features false', function () {
+    expect(foggle()->get('non-existent-feature', null))->toBeFalse();
+});
+
 it('resolves with a context', function () {
     foggle()->discover(
         'Workbench\\App\\Features',
         workbench_path('app/Features')
     );
 
-    expect(foggle()->for(true)->active('resolves-to-context'))->toBeTrue()
-        ->and(foggle()->for(false)->active('resolves-to-context'))->toBeFalse();
+    expect(foggle()->for('true')->active('resolves-to-context'))->toBeTrue()
+        ->and(foggle()->for('false')->active('resolves-to-context'))->toBeFalse();
 });
 
 it('splodes properly', function () {

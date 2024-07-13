@@ -21,4 +21,11 @@ interface Driver
      * @param (callable(mixed $context): mixed) $resolver
      */
     public function define(string $name, callable $resolver): void;
+
+    /**
+     * @param mixed $context
+     * @param mixed $value
+     *
+     */
+    public function set(string $name, $context, $value): void;
 }

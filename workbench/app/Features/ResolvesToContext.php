@@ -6,8 +6,8 @@ class ResolvesToContext
 {
     public string $name = 'resolves-to-context';
 
-    public function resolve(bool $context): bool
+    public function resolve(string $context): bool
     {
-        return $context;
+        return $context === 'true';
     }
 }
