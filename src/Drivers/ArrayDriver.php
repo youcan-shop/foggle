@@ -36,7 +36,9 @@ class ArrayDriver implements Driver
      */
     public function get(string $name, $context)
     {
-        return $this->resolvers[$name]($context);
+        $key = foggle()->serialize($context);
+
+        return $this->resolvers[$name]($key);
     }
 
     /**

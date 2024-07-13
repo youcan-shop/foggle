@@ -7,6 +7,7 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Str;
 use Symfony\Component\Finder\Finder;
 use YouCanShop\Foggle\Contracts\Driver;
+use YouCanShop\Foggle\Contracts\Foggable;
 use YouCanShop\Foggle\FeatureInteraction;
 use YouCanShop\Foggle\Lazily;
 
@@ -74,6 +75,13 @@ class Decorator implements Driver
         });
     }
 
+    protected function parseContext($context)
+    {
+        return $context instanceof Foggable
+            ? $context->foggleId()
+            : $context;
+    }
+
     /**
      * @param string $name
      * @param callable $resolver
@@ -88,6 +96,8 @@ class Decorator implements Driver
 
     public function get(string $name, $context)
     {
+        $context = $this->parseContext($context);
+
         return $this->driver->get($name, $context);
     }
 

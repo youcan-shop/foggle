@@ -33,8 +33,8 @@ it('resolves with a context', function () {
         workbench_path('app/Features')
     );
 
-    expect(foggle()->for(true)->active('resolves-to-context'))->toBeTrue()
-        ->and(foggle()->for(false)->active('resolves-to-context'))->toBeFalse();
+    expect(foggle()->for('true')->active('resolves-to-context'))->toBeTrue()
+        ->and(foggle()->for('false')->active('resolves-to-context'))->toBeFalse();
 });
 
 it('splodes properly', function () {
