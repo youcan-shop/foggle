@@ -1,5 +1,6 @@
 <?php
 
+use Workbench\App\Models\Cat;
 use Workbench\App\Models\User;
 use YouCanShop\Foggle\FogGen;
 
@@ -57,4 +58,11 @@ it('resolves a foggable using its id', function () {
 
     expect(foggle()->for(new User('1'))->active('billing'))->toBeTrue()
         ->and(foggle()->for(new User('0'))->active('billing'))->toBeFalse();
+});
+
+it('resolves context', function () {
+    foggle()->define('allow-number-seven', fn(Cat $cat) => $cat->foggleId() === '7');
+
+    expect(foggle()->active('allow-number-seven'))->toBeTrue()
+        ->and(foggle()->for(new Cat('8'))->active('allow-number-seven'))->toBeFalse();
 });

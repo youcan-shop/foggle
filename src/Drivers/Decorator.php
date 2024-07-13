@@ -6,9 +6,10 @@ use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use ReflectionFunction;
+use ReflectionType;
 use Symfony\Component\Finder\Finder;
 use YouCanShop\Foggle\Contracts\Driver;
-use YouCanShop\Foggle\Contracts\Foggable;
 use YouCanShop\Foggle\FeatureInteraction;
 use YouCanShop\Foggle\Lazily;
 
@@ -58,11 +59,8 @@ class Decorator implements Driver
 
     /**
      * @param class-string|string $name
-     * @param callable|null $resolver
-     *
-     * @return void
      */
-    public function define(string $name, callable $resolver = null): void
+    public function define(string $name, ?callable $resolver = null): void
     {
         if ($resolver === null) {
             [$name, $resolver] = [$this->container->make($name)->name ?? $name, new Lazily($name)];
@@ -79,7 +77,22 @@ class Decorator implements Driver
                 return $this->resolve($name, fn() => $resolver, $context);
             }
 
-            return $this->resolve($name, $resolver, $context);
+            if ($context !== null) {
+                return $this->resolve($name, $resolver, $context);
+            }
+
+            if (
+                ($type = $this->getContextType($resolver)) !== null
+                && ($context = foggle()->resolveContext($type)) !== null
+            ) {
+                return $this->resolve($name, $resolver, $context);
+            }
+
+            if ($this->canHandleNullContext($resolver)) {
+                return $this->resolve($name, $resolver, $context);
+            }
+
+            return $this->resolve($name, fn() => false, $context);
         });
     }
 
@@ -95,25 +108,46 @@ class Decorator implements Driver
         return $resolver($context);
     }
 
+    protected function getContextType(callable $resolver): ?ReflectionType
+    {
+        $function = new ReflectionFunction(Closure::fromCallable($resolver));
+
+        if ($function->getNumberOfParameters() !== 1 || !$function->getParameters()[0]->hasType()) {
+            return null;
+        }
+
+        return $function->getParameters()[0]->getType();
+    }
+
+    protected function canHandleNullContext(callable $resolver): bool
+    {
+        $function = new ReflectionFunction(Closure::fromCallable($resolver));
+
+        return $function->getNumberOfParameters() === 0
+            || $function->getParameters()[0]->hasType()
+            || $function->getParameters()[0]->getType()->allowsNull();
+    }
+
+    /**
+     * @return mixed
+     */
     public function get(string $name, $context)
     {
-        $context = $this->parseContext($context);
+        $key = foggle()->serialize($context);
 
-        $item = $this->cache->whereStrict('context', foggle()->serialize($context))->whereStrict('name', $name)->first();
+        $item = $this->cache
+            ->whereStrict('context', foggle()->serialize($key))
+            ->whereStrict('name', $name)
+            ->first();
 
         if ($item !== null) {
             return $item['value'];
         }
 
         $value = $this->driver->get($name, $context);
-        $this->cPut($name, $context, $value);
+        $this->cPut($name, $key, $value);
 
         return $value;
-    }
-
-    protected function parseContext($context)
-    {
-        return $context instanceof Foggable ? $context->foggleId() : $context;
     }
 
     /**
@@ -145,10 +179,10 @@ class Decorator implements Driver
 
     public function set(string $name, $context, $value): void
     {
-        $context = $this->parseContext($context);
-        $this->driver->set($name, $context, $value);
+        $key = foggle()->serialize($context);
 
-        $this->cPut($name, $context, $value);
+        $this->driver->set($name, $key, $value);
+        $this->cPut($name, $key, $value);
     }
 
     public function cFlush(): void

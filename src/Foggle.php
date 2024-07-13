@@ -6,6 +6,8 @@ use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Container\Container;
 use InvalidArgumentException;
 use RuntimeException;
+use YouCanShop\Foggle\Contracts\ContextResolver;
+use YouCanShop\Foggle\Contracts\Foggable;
 use YouCanShop\Foggle\Drivers\ArrayDriver;
 use YouCanShop\Foggle\Drivers\Decorator;
 use YouCanShop\Foggle\Drivers\RedisDriver;
@@ -15,7 +17,12 @@ use YouCanShop\Foggle\Drivers\RedisDriver;
  */
 final class Foggle
 {
+    /** @var array<Decorator> */
     protected array $stores = [];
+
+    /** @var array<ContextResolver> */
+    protected array $contextResolvers = [];
+
     private Container $container;
 
     public function __construct(Container $container)
@@ -54,7 +61,11 @@ final class Foggle
 
         if ($name === 'redis') {
             $driver = new RedisDriver(
-                $name, [], $this->container['config'], $this->container['redis'], $this->container['events']
+                $name,
+                [],
+                $this->container['config'],
+                $this->container['redis'],
+                $this->container['events']
             );
         }
 
@@ -68,6 +79,24 @@ final class Foggle
     protected function getDriverConfig(string $name): ?array
     {
         return $this->container['config']["foggle.stores.$name"];
+    }
+
+    /**
+     * @return mixed
+     */
+    public function resolveContext(string $name)
+    {
+        if (!isset($this->contextResolvers[$name])) {
+            $fqn = $this->container['config']["foggle.context_resolvers.$name"];
+            if ($fqn === null || !is_a($fqn, ContextResolver::class, true)) {
+                throw new InvalidArgumentException("Context resolver for '$name' not found");
+            }
+
+            /** @var class-string $fqn */
+            $this->contextResolvers[$name] = $this->container[$fqn];
+        }
+
+        return $this->contextResolvers[$name]->resolve();
     }
 
     public function __call($name, $arguments)
@@ -99,6 +128,10 @@ final class Foggle
 
         if (is_numeric($context)) {
             return (string)$context;
+        }
+
+        if ($context instanceof Foggable) {
+            return $context->foggleId();
         }
 
         // Foggables normally get parsed before they reach this part
