@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use RuntimeException;
 use YouCanShop\Foggle\Drivers\ArrayDriver;
 use YouCanShop\Foggle\Drivers\Decorator;
+use YouCanShop\Foggle\Drivers\RedisDriver;
 
 /**
  * @mixin Decorator
@@ -58,11 +59,21 @@ final class Foggle
             $driver = new ArrayDriver($this->container['events'], []);
         }
 
+        if ($name === 'redis') {
+            $driver = new RedisDriver(
+                $name,
+                [],
+                $this->container['config'],
+                $this->container['redis'],
+                $this->container['events']
+            );
+        }
+
         if (!isset($driver)) {
             throw new InvalidArgumentException("Driver [{$config['driver']}] is not supported");
         }
 
-        return new Decorator($name, $driver, $this->container);
+        return new Decorator($name, $driver, $this->container, collect());
     }
 
     protected function getDriverConfig(string $name): ?array
