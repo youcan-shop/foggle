@@ -27,6 +27,10 @@ it('retrieves a feature\'s value by name', function () {
     expect($foggle->get('always-true', null))->toBeTrue();
 });
 
+it('considers undefined features false', function () {
+    expect(foggle()->get('non-existent-feature', null))->toBeFalse();
+});
+
 it('resolves with a context', function () {
     foggle()->discover(
         'Workbench\\App\\Features',
