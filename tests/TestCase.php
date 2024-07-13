@@ -5,6 +5,8 @@ namespace Tests;
 use Illuminate\Contracts\Config\Repository;
 use Orchestra\Testbench\Concerns\WithWorkbench;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
+use Workbench\App\ContextResolvers\CatContextResolver;
+use Workbench\App\Models\Cat;
 use YouCanShop\Foggle\Foggle;
 
 abstract class TestCase extends OrchestraTestCase
@@ -20,9 +22,14 @@ abstract class TestCase extends OrchestraTestCase
     {
         tap($app['config'], function (Repository $config) {
             $config->set('features', [
-                'billing' => [
-                    'sellers' => splode('1,2,3'),
+                'billing'            => [
+                    'sellers' => '1,2,3',
                 ],
+                'allow-number-seven' => '7',
+            ]);
+
+            $config->set('foggle.context_resolvers', [
+                Cat::class => CatContextResolver::class,
             ]);
         });
     }

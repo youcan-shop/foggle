@@ -32,7 +32,7 @@ class FogGen
                 throw new InvalidArgumentException('Context must be an instance of Foggable or a string');
             }
 
-            return in_array($context, config($path, []));
+            return in_array($context, $config);
         };
     }
 }
