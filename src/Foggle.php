@@ -15,8 +15,8 @@ use YouCanShop\Foggle\Drivers\RedisDriver;
  */
 final class Foggle
 {
-    private Container $container;
     protected array $stores = [];
+    private Container $container;
 
     public function __construct(Container $container)
     {
@@ -41,13 +41,6 @@ final class Foggle
         return $feature->resolve();
     }
 
-    public function driver(string $name = null): Decorator
-    {
-        $name = $name ?: $this->getDefaultDriver();
-
-        return $this->stores[$name] = $this->stores[$name] ?? $this->resolve($name);
-    }
-
     protected function resolve(string $name): Decorator
     {
         $config = $this->getDriverConfig($name);
@@ -61,11 +54,7 @@ final class Foggle
 
         if ($name === 'redis') {
             $driver = new RedisDriver(
-                $name,
-                [],
-                $this->container['config'],
-                $this->container['redis'],
-                $this->container['events']
+                $name, [], $this->container['config'], $this->container['redis'], $this->container['events']
             );
         }
 
@@ -81,14 +70,21 @@ final class Foggle
         return $this->container['config']["foggle.stores.$name"];
     }
 
-    public function getDefaultDriver(): string
-    {
-        return $this->container['config']->get('foggle.default') ?? 'array';
-    }
-
     public function __call($name, $arguments)
     {
         return $this->driver()->$name(...$arguments);
+    }
+
+    public function driver(string $name = null): Decorator
+    {
+        $name = $name ?: $this->getDefaultDriver();
+
+        return $this->stores[$name] = $this->stores[$name] ?? $this->resolve($name);
+    }
+
+    public function getDefaultDriver(): string
+    {
+        return $this->container['config']->get('foggle.default') ?? 'array';
     }
 
     public function serialize($context): string
@@ -107,5 +103,16 @@ final class Foggle
 
         // Foggables normally get parsed before they reach this part
         throw new RuntimeException('Unable to serialize context, please implement the Foggable contract.');
+    }
+
+    public function cFlush(): void
+    {
+        foreach ($this->stores as $driver) {
+            $driver->cFlush();
+        }
+
+        if (isset($this->stores['array'])) {
+            $this->stores['array']->getDriver()->cFlush();
+        }
     }
 }
