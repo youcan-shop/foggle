@@ -92,4 +92,9 @@ class ArrayDriver implements Driver
     {
         $this->resolvers[$name] = $resolver;
     }
+
+    public function cFlush(): void
+    {
+        $this->resolved = [];
+    }
 }

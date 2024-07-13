@@ -151,6 +151,11 @@ class Decorator implements Driver
         $this->cPut($name, $context, $value);
     }
 
+    public function cFlush(): void
+    {
+        $this->cache = collect();
+    }
+
     /**
      * @param string $name
      * @param array $arguments

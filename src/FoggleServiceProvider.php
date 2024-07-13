@@ -33,6 +33,11 @@ class FoggleServiceProvider extends ServiceProvider
         $dispatcher = make(Dispatcher::class);
 
         $dispatcher->listen(
+            [\Illuminate\Queue\Events\JobProcessed::class],
+            fn() => $this->app[Foggle::class]->cFlush(),
+        );
+
+        $dispatcher->listen(
             [\Illuminate\Foundation\Events\PublishingStubs::class],
             fn($e) => $e->add(__DIR__ . '/../stubs/feature.stub', 'feature.stub')
         );
