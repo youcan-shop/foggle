@@ -175,7 +175,7 @@ namespace App\Models;
  
 use FlagRocket\FlagRocketUser;
 use Illuminate\Database\Eloquent\Model;
-use Laravel\Pennant\Contracts\FeatureScopeable;
+use YouCanShop\Foggle\Contracts\Foggable;
  
 class User extends Model implements Foggable
 {
