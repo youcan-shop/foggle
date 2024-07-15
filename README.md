@@ -164,7 +164,7 @@ By default, if you do not provide context to a feature, it will not try to use a
 - When using class based features, you must define a public `$contextType` property containing the context's class name.
 - When using closure based features, or `FogGen` generations, you can declare your context type as a 3rd parameter to the `define` method on `foggle()`.
 
-### Scope Identifiers
+### Context Identifiers
 
 Foggle's built-in drivers will store your context alongside the resolution value in their stores. However, serializing some contexts as-is can be heavy on some data stores (e.g. Redis) which is why every context that isn't a string must implement the `Foggable` interface.
 
