@@ -15,7 +15,7 @@ Install Foggle into your project using composer:
 composer require youcan-shop/foggle
 ```
 
-You should then publish yhe configuration files using the following artisan command:
+You should then publish the configuration files using the following artisan command:
 
 ```shell
 php artisan vendor:publish --provider="YouCanShop\Foggle\FoggleServiceProvider"
