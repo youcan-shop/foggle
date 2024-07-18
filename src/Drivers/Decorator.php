@@ -58,6 +58,11 @@ class Decorator implements Driver, ListsStored
         collect($entries)->each(fn($file) => $this->define("$namespace{$file->getBasename('.php')}"));
     }
 
+    public function driver(): Driver
+    {
+        return $this->driver;
+    }
+
     /**
      * @param class-string|string $name The feature's name
      * @param class-string|null $type The context resolver's type
