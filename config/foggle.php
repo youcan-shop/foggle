@@ -9,6 +9,11 @@ return [
             'driver' => 'array',
         ],
 
+        'redis' => [
+            'driver'     => 'redis',
+            'connection' => 'default',
+        ],
+
     ],
 
     'context_resolvers' => [
