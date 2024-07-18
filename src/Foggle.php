@@ -150,7 +150,7 @@ final class Foggle
         }
 
         if (isset($this->stores['array'])) {
-            $this->stores['array']->getDriver()->cFlush();
+            $this->stores['array']->driver()->cFlush();
         }
     }
 }
