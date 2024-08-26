@@ -125,7 +125,7 @@ class Decorator implements Driver, ListsStored
         $function = new ReflectionFunction(Closure::fromCallable($resolver));
 
         return $function->getNumberOfParameters() === 0
-            || $function->getParameters()[0]->hasType()
+            || !$function->getParameters()[0]->hasType()
             || $function->getParameters()[0]->getType()->allowsNull();
     }
 
