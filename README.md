@@ -12,7 +12,7 @@ A feature flagging package for Laravel, built with DX in mind.
 Install Foggle into your project using composer:
 
 ```shell
-composer require youcan-shop/foggle
+composer require youcanshop/foggle
 ```
 
 You should then publish the configuration files using the following artisan command:
