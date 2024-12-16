@@ -9,6 +9,7 @@ use Illuminate\Redis\RedisManager;
 use stdClass;
 use YouCanShop\Foggle\Contracts\Driver;
 use YouCanShop\Foggle\Contracts\ListsStored;
+use YouCanShop\Foggle\Utilities\Redis;
 
 class RedisDriver implements Driver, ListsStored
 {
@@ -103,32 +104,21 @@ class RedisDriver implements Driver, ListsStored
 
     public function stored(): array
     {
-        return iterator_to_array(
-            (function () {
-                $cursor = 0;
-                do {
-                    [$cursor, $keys] = $this->connection()
-                        ->command('SCAN', [$cursor, 'match', "foggle:*"]);
+        $keys = $this->redis->eval(Redis::GET_ALL, 1, "$this->prefix:*");
 
-                    foreach ($keys as $key) {
-                        yield mb_substr($key, mb_strlen($this->prefix) + 1);
-                    }
-                } while ($cursor);
-            })()
-        );
+        return array_map(fn($key) => substr(strrchr($key, ':'), 1), $keys);
     }
 
     public function purge(?array $features): void
     {
         if ($features === null) {
-            foreach ($this->stored() as $f) {
-                $this->connection()->command('DEL', ["$this->prefix:$f"]);
-            }
-
-            return;
-        }
-        foreach ($features as $f) {
-            $this->connection()->command('DEL', ["$this->prefix:$f"]);
+            $this->redis->eval(Redis::PURGE, 1, "$this->prefix:*");
+        } else {
+            $this->redis->pipeline(function ($pipe) use ($features) {
+                foreach ($features as $feature) {
+                    $pipe->del("$this->prefix:$feature");
+                }
+            });
         }
     }
 }
