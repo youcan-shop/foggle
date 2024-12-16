@@ -63,8 +63,8 @@ final class Foggle
             $driver = new RedisDriver(
                 $name,
                 [],
-                $this->container['config'],
                 $this->container['redis'],
+                $this->container['config'],
                 $this->container['events']
             );
         }
