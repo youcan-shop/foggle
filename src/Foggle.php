@@ -2,8 +2,11 @@
 
 namespace YouCanShop\Foggle;
 
+use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Container\Container;
+use Illuminate\Contracts\Events\Dispatcher as EventDispatcher;
+use Illuminate\Redis\RedisManager;
 use InvalidArgumentException;
 use RuntimeException;
 use YouCanShop\Foggle\Contracts\ContextResolver;
@@ -63,9 +66,9 @@ final class Foggle
             $driver = new RedisDriver(
                 $name,
                 [],
-                $this->container['redis'],
-                $this->container['config'],
-                $this->container['events']
+                $this->container->make(RedisManager::class),
+                $this->container->make(ConfigRepository::class),
+                $this->container->make(EventDispatcher::class),
             );
         }
 
