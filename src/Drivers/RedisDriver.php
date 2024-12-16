@@ -51,7 +51,7 @@ class RedisDriver implements Driver, ListsStored
         );
 
         if ($result) {
-            return $result;
+            return unserialize($result);
         }
 
         return with(
@@ -88,7 +88,7 @@ class RedisDriver implements Driver, ListsStored
     {
         if ($context) {
             $key = foggle()->serialize($context);
-            $this->connection()->command('HSET', ["$this->prefix:$name", $key, $value]);
+            $this->connection()->command('HSET', ["$this->prefix:$name", $key, serialize($value)]);
         }
     }
 
