@@ -91,3 +91,21 @@ it('resolves context for generations', function () {
     expect(foggle()->active('allow-number-seven'))->toBeTrue()
         ->and(foggle()->for(new Cat('8'))->active('allow-number-seven'))->toBeFalse();
 });
+
+it('purges a feature', function () {
+    foggle()->define(
+        'allow-number-seven',
+        fn() => true,
+        Cat::class
+    );
+
+    expect(foggle()->active('allow-number-seven'))->toBeTrue();
+
+    foggle()->define('allow-number-seven', fn () => false, Cat::class);
+
+    expect(foggle()->active('allow-number-seven'))->toBeTrue();
+
+    foggle()->purge(['allow-number-seven']);
+
+    expect(foggle()->active('allow-number-seven'))->toBeFalse();
+});

@@ -220,19 +220,16 @@ class Decorator implements Driver, ListsStored
             return;
         }
 
-        Collection::wrap($features)
-            ->map(Closure::fromCallable([$this, 'resolve']))
-            ->pipe(
-                function ($features) {
-                    $this->driver->purge($features->all());
-
-                    $this->cache->forget(
-                        $this->cache
-                            ->whereInStrict('feature', $features)
-                            ->keys()
-                            ->all()
-                    );
-                }
-            );
+        Collection::wrap($features)->pipe(
+            function ($features) {
+                $this->driver->purge($features->all());
+                $this->cache->forget(
+                    $this->cache
+                        ->whereInStrict('name', $features)
+                        ->keys()
+                        ->all()
+                );
+            }
+        );
     }
 }
